@@ -39,11 +39,10 @@ client.admins = [
   staff.AMNOTBANANAAMA.id,
   staff.Toxic_Demon93.id,
   staff.PaulinaCarrot.id,
-  staff.ninja5132.id,
   staff.Fjerreiro.id,
   staff.migas94.id,
   staff.BrendaxNL.id,
-  staff.Eagler1997.id,
+  staff.Eagler1997.id, //TESTING PURPOSES
 ];
 
 client.once("ready", () => {
@@ -480,7 +479,7 @@ client.on("message", async (message) => {
           color: 3066993,
         },
       });
-    const suffix = args.toString() === "off";
+    const suffix = args.toString().toLowerCase() === "off";
 
     staff[
       Object.entries(staff).find((el) => el[1].id === message.author.id)[0]
@@ -545,10 +544,22 @@ client.on("message", async (message) => {
     command === "promote" &&
     client.admins.includes(message.author.id)
   ) {
-    if (args.length === 2) {
-      promote(args[0], args[1], message);
+    if (args.length === 3) {
+      if (message.mentions.members.size > 1 || args[1].startsWith("<@!")) {
+        return message.channel.send(
+          `**Error:**\n too much tagged users please use **!promote \`[tagged user]\` \`[username]\` \`[role]\`**`
+        );
+      } else if (message.mentions.members.size === 1) {
+        promote(message.mentions.members.first(), args[1], args[2], message);
+      } else {
+        return message.channel.send(
+          `**Error:**\n no tagged user (@user), please use **!promote \`[tagged user]\` \`[username]\` \`[role]\`**`
+        );
+      }
     } else {
-      return message.channel.send("invalid amount of arguments");
+      return message.channel.send(
+        `**Error:**\n invalid amount of arguments, please use **!promote \`[tagged user]\` \`[username]\` \`[role]\`**`
+      );
     }
     //} else if (command === "1.16" || command == "update") {
     //message.channel.send({ embed: UpdateEmbed }).catch(console.error);
@@ -790,24 +801,46 @@ const ping = async () => {
   });
 };
 
-const promote = (target, role, msg) => {
-  if (staff[target]) {
-    staff[target].rank = role;
-  } else {
-    staff[target] = { rank: role };
-  }
+const promote = (GuildMember, target, role, msg) => {
+  try {
+    if (
+      typeof GuildMember !== "object" ||
+      GuildMember == undefined ||
+      typeof target !== "string" ||
+      typeof role !== "string"
+    ) {
+      return msg.channel.send(
+        `**Error** Please use the format **!promote \`[tagged user]\` \`[username]\` \`[role]\`**\n Your input was:\n - \`Tagged user:\` ${GuildMember}\n - \`Target:\` ${target}\n - \`Role:\` ${role}`
+      );
+    }
+    if (staff[target]) {
+      if (!staff[target].id) {
+        staff[target].id = GuildMember.id;
+      }
+      staff[target].rank = role;
+    } else {
+      staff[target] = { rank: role, id: GuildMember.id, ping: false };
+    }
 
-  saveStaff(msg);
-  msg.channel.send(`Updated ${target}'s role to ${role} in the JSON.`);
+    saveStaff(msg);
+    msg.channel.send(`Updated ${target}'s role to ${role} in the JSON.`);
+  } catch (error) {
+    msg.channel.send(
+      `**Error** something unexpected went wrong in the \`promote\` command, please contact Eagler1997`
+    );
+  }
 };
 
 const saveStaff = (msg) => {
   let data = JSON.stringify(staff, null, 2);
 
   fs.writeFile("staff.json", data, (err) => {
-    if (err) throw err;
-    console.log("Data written to file");
-
+    if (err) {
+      console.log("FAILED TO WRITE TO STAFF FILE");
+      return msg.channel.send("ERROR, Failed to save staff file");
+    } else {
+      console.log("Data written to file");
+    }
     const file = fs.readFileSync("staff.json");
 
     const attachment = new Discord.MessageAttachment(file, "staff.json");
@@ -963,18 +996,17 @@ const sendMessageToAdmins = (message, args) => {
       .then((msg) => {
         let collector = new Discord.MessageCollector(
           msg.channel, //CHANNEL
-          (m) =>
-            m.author.id === message.author.id && m.content.includes(args[0]) //FILTER
+          (m) => m.author.id === element.id && m.content.includes(args[0]) //FILTER
         );
         collector.on("collect", (message) => {
-          console.log(message.content);
-
           if (
             ["yes", "no"].includes(
               message.content.substring(0, 3).replace(/\s/g, "").toLowerCase()
             )
           ) {
-            message.channel.send(`Thank you for voting on the application of **${args[0]}**!`)
+            message.channel.send(
+              `Thank you for voting on the application of **${args[0]}**!`
+            );
             votes[args[0]][message.author.username] = message.content;
             saveVotes();
             forwardMessage(message, message.content.substring(3), args[0]);
@@ -1012,9 +1044,13 @@ const forwardMessage = (message, reason, name) => {
 
 const saveVotes = () => {
   let data = JSON.stringify(votes, null, 2);
-
   fs.writeFile("votes.json", data, (err) => {
-    if (err) throw err;
+    if (err) {
+      console.log("FAILED TO WRITE TO STAFF FILE");
+      return msg.channel.send("ERROR, Failed to save staff file");
+    } else {
+      console.log("Data written to file");
+    }
     console.log("Data written to file");
   });
 };

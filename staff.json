@@ -16,12 +16,7 @@
   },
   "Richgotya": {
     "rank": "SA",
-    "id": "",
-    "ping": false
-  },
-  "ninja5132": {
-    "rank": "Admin",
-    "id": "560839542811131905",
+    "id": "121367741746642945",
     "ping": false
   },
   "Toxic_Demon93": {
@@ -51,7 +46,7 @@
   },
   "Annu_Mannu67": {
     "rank": "Mod",
-    "id": "",
+    "id": "228290373527535617",
     "ping": false
   },
   "AceAlmighty16": {
@@ -59,24 +54,14 @@
     "id": "",
     "ping": false
   },
-  "Creepy_Crawlers": {
-    "rank": "Admin",
-    "id": "",
-    "ping": false
-  },
   "ElizaPalooza": {
     "rank": "Mod",
-    "id": "",
+    "id": "246575682514190336",
     "ping": false
   },
   "Jeffeatspie": {
     "rank": "Mod",
-    "id": "",
-    "ping": false
-  },
-  "KibikiKibble": {
-    "rank": "Mod",
-    "id": "",
+    "id": "247021811169099778",
     "ping": false
   },
   "Oplegoman": {
@@ -86,32 +71,32 @@
   },
   "RogueFriday": {
     "rank": "Mod",
-    "id": "",
+    "id": "249599848750252043",
     "ping": false
   },
   "Fedgar_Lurch": {
     "rank": "Founder",
-    "id": "",
+    "id": "243032623885058048",
     "ping": false
   },
   "Demoncrusher": {
     "rank": "Mod",
-    "id": "",
+    "id": "422400387836936193",
     "ping": false
   },
   "charactername111": {
     "rank": "Mod",
-    "id": "",
+    "id": "230847933631692800",
     "ping": false
   },
   "bugsy12": {
-    "rank": "Mod",
-    "id": "",
+    "rank": "Admin",
+    "id": "358800493184679937",
     "ping": false
   },
   "Devereux": {
-    "rank": "Mod",
-    "id": "",
+    "rank": "Admin",
+    "id": "409934774229270548",
     "ping": false
   },
   "FafaKuku": {
@@ -120,8 +105,8 @@
     "ping": false
   },
   "xXCRYMINALXx": {
-    "rank": "Mod",
-    "id": "",
+    "rank": "Admin",
+    "id": "696953783422418984",
     "ping": false
   },
   "Kita28": {
@@ -132,6 +117,16 @@
   "Eagler1997": {
     "rank": "Tester",
     "id": "243275264497418250",
+    "ping": false
+  },
+  "Eagler1997_test": {
+    "rank": "Admin",
+    "id": "768358407693795348",
+    "ping": false
+  },
+  "<@!768358407693795348>": {
+    "rank": "Admin",
+    "id": "768358407693795348",
     "ping": false
   }
 }

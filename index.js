@@ -32,17 +32,19 @@ const roles = require("./roles.json");
 const staff = require("./staff.json");
 const rules = require("./rules.json");
 const votes = require("./votes.json");
+const events = require("./events.json");
+const collectors = require("./collectors.json");
 
 client.settings.disableping = false;
 //ALL ADMINS OF THE BOT, THESE PEOPLE HAVE FULL ACCESS TO ALL COMMANDS
 client.admins = [
-  staff.AMNOTBANANAAMA.id,
   staff.Toxic_Demon93.id,
   staff.PaulinaCarrot.id,
   staff.Fjerreiro.id,
   staff.migas94.id,
   staff.BrendaxNL.id,
-  staff.Eagler1997.id, //TESTING PURPOSES
+  staff.Oplegoman.id,
+  staff.Eagler1997.id,
 ];
 
 client.once("ready", () => {
@@ -84,6 +86,8 @@ client.once("ready", () => {
       `${getTime()} Server is ${state.online == 2 ? "online" : "offline"}`
     );
   });
+
+  loadCollectors();
 });
 
 const UpdateEmbed = {
@@ -251,7 +255,7 @@ client.on("message", async (message) => {
         );
       }
     }
-  } else if (command == "help") {
+  } else if (command === "help" || command === "?") {
     message.channel
       .send({
         embed: {
@@ -260,9 +264,13 @@ client.on("message", async (message) => {
           fields: [
             {
               name: "**COMMANDS**",
-              value: commandarray
-                .map((i) => `${process.env.PREFIX}` + i)
-                .join("\n"),
+              value: [
+                ...commandarray.map((i) => `${process.env.PREFIX}` + i),
+                "\n**EVENTS**",
+                `${process.env.PREFIX}${Object.keys(events).join(
+                  `\n${process.env.PREFIX}`
+                )}`,
+              ].join("\n"),
             },
             {
               name: "**IP**",
@@ -280,7 +288,7 @@ client.on("message", async (message) => {
         },
       })
       .catch(console.error);
-  } else if (command == "ip") {
+  } else if (command === "ip") {
     message.channel
       .send({
         embed: {
@@ -289,7 +297,7 @@ client.on("message", async (message) => {
         },
       })
       .catch(console.error);
-  } else if (command == "donate") {
+  } else if (command === "donate") {
     message.channel
       .send({
         embed: {
@@ -298,7 +306,7 @@ client.on("message", async (message) => {
         },
       })
       .catch(console.error);
-  } else if (command == "forum") {
+  } else if (command === "forum") {
     message.channel
       .send({
         embed: {
@@ -307,7 +315,7 @@ client.on("message", async (message) => {
         },
       })
       .catch(console.error);
-  } else if (command == "map") {
+  } else if (command === "map") {
     message.channel
       .send({
         embed: {
@@ -325,7 +333,7 @@ client.on("message", async (message) => {
         },
       })
       .catch(console.error);
-  } else if (command == "appeal") {
+  } else if (command == "appeal" || command == "banned") {
     message.channel
       .send({
         embed: {
@@ -509,6 +517,214 @@ client.on("message", async (message) => {
       message.member || message.guild.fetchMember(message.author)
     );
     message.channel.send("I added a fake join");
+  } else if (command === "time") {
+    var now = new Date();
+    var utc = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+
+    message.channel
+      .send({
+        embed: {
+          title: `**Server time**`,
+          fields: [
+            {
+              name: "DATE :",
+              value: `${utc.toDateString()}`,
+            },
+            {
+              name: "TIME :",
+              value: `${
+                utc.getHours() < 10 ? `0${utc.getHours()}` : utc.getHours()
+              }:${
+                utc.getMinutes() < 10
+                  ? `0${utc.getMinutes()}`
+                  : utc.getMinutes()
+              }h`,
+            },
+          ],
+          color: 3066993,
+        },
+      })
+      .catch(console.error);
+  } else if (command === "events") {
+    const eventEmbed = new Discord.MessageEmbed();
+    eventEmbed.setTitle("**EVENTS**");
+    eventEmbed.setDescription(
+      "This is a list of all official registered events of the server, there might be other player hosted events, check forums for those events"
+    );
+    Object.keys(events).forEach((element) => {
+      eventEmbed.addField(
+        `**${process.env.PREFIX}${element}**`,
+        `${events[element].fullName}`
+      );
+    });
+
+    message.channel.send(eventEmbed);
+  } else if (command === "event" && client.admins.includes(message.author.id)) {
+    if (args.length >= 1) {
+      if (["add", "create", "new"].includes(args[0].toLowerCase())) {
+        RegisterEvent(message, 0);
+      } else if (["remove", "delete", "stop"].includes(args[0].toLowerCase())) {
+        const localEmbed = new Discord.MessageEmbed();
+        localEmbed.setTitle("**DELETE EVENT**");
+        localEmbed.setDescription(
+          "What event do you want to remove? use the shortname! (E.G row)"
+        );
+        Object.keys(events).forEach((element) => {
+          localEmbed.addField(`**${element}**`, `${events[element].fullName}`);
+        });
+
+        message.channel.send(localEmbed);
+        message.channel
+          .awaitMessages((m) => m.author.id === message.author.id, {
+            max: 1,
+            time: 60000,
+            errors: ["time"],
+          })
+          .then((collected) => {
+            if (
+              events.hasOwnProperty(collected.first().content.toLowerCase())
+            ) {
+              var isDeleted = delete events[
+                collected.first().content.toLowerCase()
+              ];
+              if (isDeleted) {
+                saveEvents(message)
+                  .then(
+                    message.channel.send({
+                      embed: {
+                        title: "SUCCESS",
+                        description: `Deleted event **${collected
+                          .first()
+                          .content.toLowerCase()}**`,
+                      },
+                    })
+                  )
+                  .catch((err) => message.channel.send(err));
+              } else {
+                message.channel.send({
+                  embed: {
+                    title: "Unknown event",
+                    description: `Failed to delete event **${
+                      collected.first().content
+                    }**!`,
+                  },
+                });
+              }
+            } else {
+              message.channel.send({
+                embed: {
+                  title: "Unknown event",
+                  description: `An event with the name\`${
+                    collected.first().content
+                  }\` does not exist`,
+                },
+              });
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+            message.channel.send({
+              embed: {
+                title: "Cancelled",
+                description: `Something went wrong, and the command was cancelled`,
+              },
+            });
+          });
+      } else {
+        message.channel.send({
+          embed: {
+            title: "Error, wrong argument",
+            description: `\`${args[0]}\` is not a valid argument do ${process.env.PREFIX}event for a list of valid arguments`,
+          },
+        });
+      }
+    } else {
+      message.channel.send({
+        embed: {
+          title: "Error, more arguments needed",
+          description: `\n**To create a new event:** \n${[
+            "- add",
+            "- create",
+            "- new",
+          ].join("\n")}\n\n**To delete an existing event:** \n${[
+            "- remove",
+            "- delete",
+            "- stop",
+          ].join("\n")}`,
+        },
+      });
+    }
+    //LIMIT TO STAFF
+    //ADD, REMOVE OPTIONS
+  } else if (Object.keys(events).includes(command)) {
+    var Today = new Date(Date.now()); //already in UTC (OK)
+    //Today.setUTCHours(Today.getHours() + 64); //manually adjust time for testing
+    //Today.setUTCMinutes(Today.getMinutes() + 43);
+    var _today = new Date(
+      Today.getFullYear(),
+      Today.getMonth(),
+      Today.getDate(),
+      Today.getUTCHours() - 6,
+      0,
+      0
+    ); //look back in the past to get
+
+    var NextRow = new Date(
+      getNextDayOfWeek(_today, events[command].dayOfWeek).toUTCString()
+    ); //should return wednesday 24th (OK)
+
+    var EveningRow = new Date(
+      new Date(
+        NextRow.setUTCHours(events[command].evening, 00, 00, 00)
+      ).setUTCDate(NextRow.getUTCDate() + 1)
+    );
+
+    var MorningRow = new Date(
+      NextRow.setUTCHours(events[command].morning, 00, 00, 00)
+    );
+
+    var TimeToMorningRow = MorningRow - Today.getTime();
+    var TimeToEveningRow = EveningRow - Today.getTime();
+
+    message.channel
+      .send({
+        embed: {
+          title: `**${events[command].fullName}**`,
+          fields: [
+            {
+              name: "SERVER TIME NOW",
+              value: `${Today.toUTCString()}`,
+            },
+            {
+              name: `MORNING ${command.toLocaleUpperCase()}`,
+              value:
+                TimeToMorningRow > 0
+                  ? `**Morning ${command.toLocaleUpperCase()}** is in ${dhm(
+                      TimeToMorningRow
+                    )} on\n\`${MorningRow.toUTCString()}\``
+                  : `You missed this weeks ${command.toLocaleUpperCase()}, better luck next week`,
+            },
+            {
+              name: `EVENING ${command.toLocaleUpperCase()}`,
+              value:
+                TimeToEveningRow > 0
+                  ? `**Evening ${command.toLocaleUpperCase()}** is in ${dhm(
+                      TimeToEveningRow
+                    )} on\n\`${EveningRow.toUTCString()}\``
+                  : `You missed this weeks ${command.toLocaleUpperCase()}, better luck next week`,
+            },
+
+            {
+              name: "RULES & INFORMATION",
+              value: `[Start to ${command.toLocaleUpperCase()}](${
+                events[command].forumPost
+              })`,
+            },
+          ],
+          color: 3066993,
+        },
+      })
+      .catch(console.error);
   } else if (
     command === "fakealert" &&
     client.admins.includes(message.author.id)
@@ -563,7 +779,7 @@ client.on("message", async (message) => {
     }
     //} else if (command === "1.16" || command == "update") {
     //message.channel.send({ embed: UpdateEmbed }).catch(console.error);
-  } else if (command == "seniormember") {
+  } else if (command == "seniormember" || command == "sm") {
     message.channel
       .send({
         embed: {
@@ -585,12 +801,19 @@ client.on("message", async (message) => {
   }
 });
 
+function getNextDayOfWeek(date, dayOfWeek) {
+  var resultDate = new Date(date.getTime());
+  resultDate.setDate(date.getDate() + ((7 + dayOfWeek - date.getDay()) % 7));
+  return resultDate;
+}
+
 const getDays = (dt1, dt2) => {
   var start = new Date(dt2);
   var end = new Date(dt1);
   var days = (end - start) / 1000 / 60 / 60 / 24;
   days =
-    days - (end.getTimezoneOffset() - start.getTimezoneOffset()) / (60 * 24);
+    days -
+    (end.getUTCTimezoneOffset() - start.getUTCTimezoneOffset()) / (60 * 24);
   return Math.floor(days);
 };
 
@@ -655,18 +878,20 @@ const triggers = ["players", "list", "online", "status", "who"];
 
 //ADD ALL OTHER COMMANDS HERE, THEY WILL BE MERGED TO 1 LIST AND APPEAR IN THE HELP
 const commandarray = [
-  ...triggers,
+  [...triggers].join(`, ${process.env.PREFIX}`),
+  `help, ${process.env.PREFIX}?`,
   "ip",
   "forum",
   "donate",
   "vote",
   "map",
   "music",
-  "appeal",
+  `appeal, ${process.env.PREFIX}banned`,
   "userinfo",
   "invite",
-  "update",
-  "seniormember",
+  `seniormember, ${process.env.PREFIX}sm`,
+  "time",
+  "events",
 ];
 
 /**
@@ -692,6 +917,14 @@ var state = {
 Date.minutesBetween = function (date1, date2) {
   return Math.abs(new Date(date1) - new Date(date2)) / 1000 / 60;
 };
+
+function dhm(timeInMiliseconds) {
+  let d = Math.floor(timeInMiliseconds / 1000 / 60 / 60 / 24);
+  let h = Math.floor(timeInMiliseconds / 1000 / 60 / 60 - d * 24);
+  let m = Math.floor((timeInMiliseconds / 1000 / 60 / 60 - h - d * 24) * 60);
+  //let s = Math.floor(((timeInMiliseconds / 1000 / 60 / 60 - h) * 60 - m) * 60);
+  return `${d} days and ${h} hours and ${m} minutes`;
+}
 
 /**
  * Description (Extension of Date to return full minutestring).
@@ -983,7 +1216,7 @@ const sendMessageToAdmins = (message, args) => {
   if (!Sentinel) return console.error("Did not find any guilds");
 
   let pingableStaff = Object.entries(staff)
-    .filter((s) => ["Admin", "SA", "Owner"].includes(s[1].rank)) //LIST OF RANKS TO CONTACT
+    .filter((s) => ["Admin"].includes(s[1].rank)) //LIST OF RANKS TO CONTACT
     .map((el) => el[1].id);
   let Admins = Sentinel.members.cache.filter((m) =>
     pingableStaff.includes(m.id)
@@ -994,31 +1227,86 @@ const sendMessageToAdmins = (message, args) => {
         `Open application for **${args[0]}**\n**Please reply with:**\n\`Yes ${args[0]} reason to approve\`\n**OR**\n\`No ${args[0]} reason to deny\`\n**Application URL:**\n${args[1]}`
       )
       .then((msg) => {
-        let collector = new Discord.MessageCollector(
-          msg.channel, //CHANNEL
-          (m) => m.author.id === element.id && m.content.includes(args[0]) //FILTER
-        );
-        collector.on("collect", (message) => {
-          if (
-            ["yes", "no"].includes(
-              message.content.substring(0, 3).replace(/\s/g, "").toLowerCase()
-            )
-          ) {
-            message.channel.send(
-              `Thank you for voting on the application of **${args[0]}**!`
-            );
-            votes[args[0]][message.author.username] = message.content;
-            saveVotes();
-            forwardMessage(message, message.content.substring(3), args[0]);
-            collector.stop();
-          }
-        });
-
-        collector.on("end", (collected, reason) => {
-          console.log(`collector has ended ${reason}`);
-        });
+        registerCollector(msg.channel.id, args, element);
       })
       .catch((e) => console.error);
+  });
+};
+const saveCollectors = () => {
+  let data = JSON.stringify(collectors, null, 2);
+  fs.writeFile("collectors.json", data, (err) => {
+    if (err) {
+      console.log("FAILED TO WRITE TO COLLECTOR FILE");
+    } else {
+      console.log("Data written to collector file");
+    }
+  });
+};
+
+const loadCollectors = () => {
+  console.log(
+    `Found ${
+      Object.entries(collectors).length
+    } collectors saved, registering them`
+  );
+  for (const [key, value] of Object.entries(collectors)) {
+    registerCollector(value.channel, value.args, value.admin);
+  }
+};
+
+const registerCollector = async (channelId, args, admin) => {
+  return new Promise((resolve, reject) => {
+    try {
+      client.channels
+        .fetch(channelId, true, true)
+        .then((channel) => {
+          console.log("FOUND CHANNEL");
+          let collector = new Discord.MessageCollector(
+            channel, //CHANNEL
+            (m) => m.author.id === admin.id && m.content.includes(args[0]) // FILTER
+          );
+
+          collectors[`${channel.id}${args[0]}`] = {
+            channel: channel.id,
+            admin: { id: admin.id },
+            args: [...args],
+          };
+          saveCollectors(); //maybe only save before restart??
+
+          collector.on("collect", (message) => {
+            console.log("COLLECTOR COLLECT", message);
+            if (
+              ["yes", "no"].includes(
+                message.content.substring(0, 3).replace(/\s/g, "").toLowerCase()
+              )
+            ) {
+              message.channel.send(
+                `Thank you for voting on the application of **${args[0]}**!`
+              );
+              votes[args[0]][message.author.username] = message.content;
+              delete collectors[`${message.channel.id}${args[0]}`];
+              saveVotes(message);
+              saveCollectors();
+              forwardMessage(message, message.content.substring(3), args[0]);
+              collector.stop();
+              resolve();
+            }
+          });
+
+          collector.on("end", (collected, reason) => {
+            console.log(`collector has ended ${reason}`);
+            resolve();
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+          reject(err);
+        });
+    } catch (error) {
+      console.error(error);
+      console.error("ERROR IN REGISTER COLLECTOR");
+      reject(error);
+    }
   });
 };
 
@@ -1042,7 +1330,7 @@ const forwardMessage = (message, reason, name) => {
   );
 };
 
-const saveVotes = () => {
+const saveVotes = (msg) => {
   let data = JSON.stringify(votes, null, 2);
   fs.writeFile("votes.json", data, (err) => {
     if (err) {
@@ -1053,4 +1341,141 @@ const saveVotes = () => {
     }
     console.log("Data written to file");
   });
+};
+
+const saveEvents = (msg) => {
+  return new Promise((resolve, reject) => {
+    let data = JSON.stringify(events, null, 2);
+    fs.writeFile("events.json", data, (err) => {
+      if (err) {
+        console.log("FAILED TO WRITE TO EVENTS FILE");
+        reject("ERROR, Failed to save events file");
+        return msg.channel.send("ERROR, Failed to save events file");
+      } else {
+        resolve();
+
+        console.log("Data written to file");
+      }
+    });
+  });
+};
+
+let results = [];
+
+const RegisterEvent = (message, index) => {
+  const questions = [
+    "**`Short name` of event? (E.G RoW, ToF, ...)**",
+    "**`Full name` of event? (E.G Roll on Wednesday, Trivia on Friday)**",
+    "**A `description` of your event, keep it short**",
+    "**`Time` that event happens in the `morning` (GMT), provide a number between 0 and 23**",
+    "**`Time` that event happens in the `evening` (GMT), provide a number between 0 and 23**",
+    "**`Day` that event happens, provide a number between 0 and 6, where: \n `Sunday is 0` \n `Monday is 1` \n `Tuesday is 2` \n `Wednesday is 3` \n `Thursday is 4` \n `Friday is 5` \n `Saturday is 6`**",
+    "**`ForumPost` with more info about your event**",
+  ];
+  const filter = (m) => m.author.id == message.author.id;
+  message.channel.send(questions[index]).then(() => {
+    message.channel
+      .awaitMessages(filter, { max: 1, time: 60000, errors: ["time"] })
+      .then((collected) => {
+        if (
+          ["cancel", "stop"].includes(collected.first().content.toLowerCase())
+        ) {
+          message.channel.send("Cancelled registering event");
+          results = [];
+          return;
+        }
+        results.push(collected.first().content);
+        if (index + 1 >= questions.length) {
+          return AddEvent(message, results);
+        } else {
+          RegisterEvent(message, index + 1);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        message.channel.send("Cancelled registering event");
+      });
+  });
+};
+
+const AddEvent = (message, info) => {
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  message.channel
+    .send({
+      embed: {
+        color: 0x0099ff,
+        title:
+          "If all info is correct, please answer with **YES**, to cancel the event answer with **NO**",
+
+        fields: [
+          {
+            name: "Full name",
+            value: `\`${info[1]}\``,
+          },
+          {
+            name: "Short name",
+            value: `\`${info[0]}\``,
+          },
+          {
+            name: "Description",
+            value: `\`${info[2]}\``,
+          },
+          {
+            name: "Morning time in GMT",
+            value: `\`${Number(info[3])}\``,
+          },
+          {
+            name: "Evening time in GMT",
+            value: `\`${Number(info[4])}\``,
+          },
+          {
+            name: "Day of week",
+            value: `\`${days[Number(info[5])]}\``,
+          },
+          {
+            name: "ForumPost",
+            value: `\`${info[6]}\``,
+          },
+        ],
+      },
+    })
+    .then(() => {
+      message.channel
+        .awaitMessages((m) => ["yes", "no"].includes(m.content.toLowerCase()), {
+          max: 1,
+          time: 60000,
+          errors: ["time"],
+        })
+        .then((collected) => {
+          if (collected.first().content.toLowerCase() === "yes") {
+            events[info[0].toLowerCase()] = {
+              fullName: info[1],
+              description: info[2],
+              morning: Number(info[3]),
+              evening: Number(info[4]),
+              dayOfWeek: Number(info[5]),
+              forumPost: info[6],
+            };
+            //clear all saved events
+            results = [];
+            saveEvents(message)
+              .then(message.channel.send("Registered event and saved to file"))
+              .catch((err) => message.channel.send(err));
+          } else {
+            message.channel.send("Event was not registered");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          message.channel.send("Cancelled registering event");
+        });
+    });
 };

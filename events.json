@@ -1,0 +1,19 @@
+{
+  "row": {
+    "fullName": "Row on Wednesday",
+    "description": "RoW is an event that happens on **Wednesdays** where you will have to /roll to win prizes! However, you will have to **test your luck** against other players. The idea of the game is that the person who rolls the lowest is out, and then so on with multiple rounds until one person is left. But there's a catch of course; every time you use the command, it takes $100 from your account, making the game somewhat like **gambling**.",
+    "dayOfWeek": 3,
+    "morning": 16,
+    "evening": 4,
+    "forumPost": "http://sentinelcraft.net/forum/index.php?topic=588.0"
+  },
+  "tof": {
+    "fullName": "Trivia on Friday",
+    "description": "Do you dare answer correct? Trivia on Friday is the most challenging thing you will do before the weekends starts. Hope your brain isn't sleeping just yet...",
+    "dayOfWeek": 5,
+    "morning": 16,
+    "evening": 4,
+    "forumPost": "http://sentinelcraft.net/forum/index.php?topic=10233"
+  }
+
+}

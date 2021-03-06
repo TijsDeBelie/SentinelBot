@@ -24,11 +24,6 @@
     "id": "121419228959080450",
     "ping": false
   },
-  "AMNOTBANANAAMA": {
-    "rank": "Admin",
-    "id": "429425851835088897",
-    "ping": false
-  },
   "BrendaxNL": {
     "rank": "SA",
     "id": "216926188906610688",
@@ -114,19 +109,9 @@
     "id": "552570693498175491",
     "ping": false
   },
-  "Eagler1997": {
+    "Eagler1997": {
     "rank": "Tester",
     "id": "243275264497418250",
-    "ping": false
-  },
-  "Eagler1997_test": {
-    "rank": "Admin",
-    "id": "768358407693795348",
-    "ping": false
-  },
-  "<@!768358407693795348>": {
-    "rank": "Admin",
-    "id": "768358407693795348",
-    "ping": false
+    "ping": true
   }
 }

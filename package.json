@@ -7,7 +7,7 @@
     "node": "12.x.x"
   },
   "scripts": {
-    "start": "node discord_bot.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [

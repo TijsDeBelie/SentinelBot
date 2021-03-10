@@ -2,12 +2,12 @@
   "name": "sentinelbot",
   "version": "1.0.0",
   "description": "A discord bot that pings the server, and provides more info",
-  "main": "index.js",
+  "main": "discord_bot.js",
   "engines": {
     "node": "12.x.x"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "node discord_bot.js",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [

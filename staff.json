@@ -1,6 +1,6 @@
 {
   "migas94": {
-    "rank": "Owner",
+    "rank": "SA",
     "id": "243110195704758273",
     "ping": false
   },
@@ -10,7 +10,7 @@
     "ping": false
   },
   "PaulinaCarrot": {
-    "rank": "SA",
+    "rank": "Owner",
     "id": "215430397855531018",
     "ping": false
   },
@@ -40,7 +40,7 @@
     "ping": false
   },
   "Annu_Mannu67": {
-    "rank": "Mod",
+    "rank": "Admin",
     "id": "228290373527535617",
     "ping": false
   },
@@ -108,10 +108,5 @@
     "rank": "Mod",
     "id": "552570693498175491",
     "ping": false
-  },
-    "Eagler1997": {
-    "rank": "Tester",
-    "id": "243275264497418250",
-    "ping": true
   }
 }

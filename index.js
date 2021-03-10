@@ -12,6 +12,8 @@ const cron = require("node-cron");
 const pinger = require("minecraft-pinger");
 const Query = require("mcquery");
 
+const request = require("request");
+
 const fs = require("fs");
 
 require("dotenv").config();
@@ -34,6 +36,7 @@ const rules = require("./rules.json");
 const votes = require("./votes.json");
 const events = require("./events.json");
 const collectors = require("./collectors.json");
+const { join } = require("path");
 
 client.settings.disableping = false;
 //ALL ADMINS OF THE BOT, THESE PEOPLE HAVE FULL ACCESS TO ALL COMMANDS
@@ -44,7 +47,6 @@ client.admins = [
   staff.migas94.id,
   staff.BrendaxNL.id,
   staff.Oplegoman.id,
-  staff.Eagler1997.id,
 ];
 
 client.once("ready", () => {
@@ -223,6 +225,35 @@ client.on("message", async (message) => {
               console.error(e);
           });
       });
+  } else if (command === "say") {
+    message.channel.send(args.join(" ")).then(() => {
+      message.delete();
+    });
+  } else if (command === "duck") {
+    await request(
+      "https://random-d.uk/api/v2/random",
+      function (err, res, body) {
+        var data = JSON.parse(body);
+        if (!err) {
+          message.channel.send({
+            embed: {
+              title: "Click here if the image failed to load.",
+              url: `${data.url}`,
+              color: 6192321,
+              image: {
+                url: `${data.url}`,
+              },
+              footer: {
+                icon_url: message.author.AvatarURL,
+                text: `Requested by ${message.author.tag}`,
+              },
+            },
+          });
+        } else {
+          message.channel.send("The duck is a bit shy!");
+        }
+      }
+    );
   } else if (command == "app" && client.admins.includes(message.author.id)) {
     if (args.length > 1) {
       if (["remove", "delete"].includes(args[0].toLowerCase())) {
@@ -614,7 +645,7 @@ client.on("message", async (message) => {
               message.channel.send({
                 embed: {
                   title: "Unknown event",
-                  description: `An event with the name\`${
+                  description: `An event with the name \`${
                     collected.first().content
                   }\` does not exist`,
                 },
@@ -1412,9 +1443,7 @@ const AddEvent = (message, info) => {
     .send({
       embed: {
         color: 0x0099ff,
-        title:
-          "If all info is correct, please answer with **YES**, to cancel the event answer with **NO**",
-
+        title: "Please check your answers",
         fields: [
           {
             name: "Full name",
@@ -1449,33 +1478,56 @@ const AddEvent = (message, info) => {
     })
     .then(() => {
       message.channel
-        .awaitMessages((m) => ["yes", "no"].includes(m.content.toLowerCase()), {
-          max: 1,
-          time: 60000,
-          errors: ["time"],
+        .send({
+          embed: {
+            title:
+              "Is all the info correct? And do you want to register this event?",
+            description: "Answer with `Yes` or `No`",
+          },
         })
-        .then((collected) => {
-          if (collected.first().content.toLowerCase() === "yes") {
-            events[info[0].toLowerCase()] = {
-              fullName: info[1],
-              description: info[2],
-              morning: Number(info[3]),
-              evening: Number(info[4]),
-              dayOfWeek: Number(info[5]),
-              forumPost: info[6],
-            };
-            //clear all saved events
-            results = [];
-            saveEvents(message)
-              .then(message.channel.send("Registered event and saved to file"))
-              .catch((err) => message.channel.send(err));
-          } else {
-            message.channel.send("Event was not registered");
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-          message.channel.send("Cancelled registering event");
+        .then(() => {
+          message.channel
+            .awaitMessages(
+              (m) => ["yes", "no"].includes(m.content.toLowerCase()),
+              {
+                max: 1,
+                time: 60000,
+                errors: ["time"],
+              }
+            )
+            .then((collected) => {
+              if (collected.first().content.toLowerCase() === "yes") {
+                events[info[0].toLowerCase().replace(/ /g, "_")] = {
+                  fullName: info[1],
+                  description: info[2],
+                  morning: Number(info[3]),
+                  evening: Number(info[4]),
+                  dayOfWeek: Number(info[5]),
+                  forumPost: info[6],
+                };
+                //clear all saved events
+                results = [];
+                saveEvents(message)
+                  .then(
+                    message.channel.send("Registered event and saved to file")
+                  )
+                  .catch((err) => message.channel.send(err));
+              } else {
+                results = [];
+                message.channel.send({
+                  embed: {
+                    title: "CANCELLED",
+                    description: `Event was not registered!\n Reason: user cancelled by answering \`${
+                      collected.first().content
+                    }\``,
+                  },
+                });
+              }
+            })
+            .catch((err) => {
+              console.log(err);
+              message.channel.send("Cancelled registering event");
+            });
         });
     });
 };
